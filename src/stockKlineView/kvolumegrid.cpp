@@ -33,15 +33,12 @@ void kVolumeGrid::initial()
 //        QMessageBox::about(this,tr("数据文件读取失败"),tr("确定"));
 //        return ;
 //    }
-
 //    //初始化一些成员变量值
-
 //    endDay = mDataFile.kline.size() - 1;
 //    totalDay = 200;
 //    beginDay  = endDay - totalDay;
 //    currentDay = beginDay + totalDay /2;
 //    maxVolume = 0;
-
 }
 
 bool kVolumeGrid::readData(QString strFile)
@@ -167,6 +164,7 @@ void kVolumeGrid::drawVolume()
             p4.setX(getMarginLeft() + xstep * (i - beginDay) + lineWidth);
             p4.setY(getWidgetHeight()  - getMarginBottom());
 
+            //连接点成矩形
             painter.drawLine(p1, p2);
             painter.drawLine(p1, p3);
             painter.drawLine(p2, p4);

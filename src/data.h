@@ -32,6 +32,35 @@ struct DataAllDP{
     double todaySY=0;
 };
 
+struct levelGP{
+    QString codec;
+    QString name;
+
+    double yingli;//股票盈利率
+
+    double bodong;//股票波动性
+
+    double totalvolume;//股票市场性 sum of volume
+    double totalshare;
+    double roundrate;//股票周转率
+
+
+};
+struct judgeGP{
+    QString codec;
+    QString name;
+    double yingli;
+    double bodong;
+    double roundrate;
+    double score;
+};
+struct Mapjudge{
+    QMap<QString , judgeGP> map;
+};
+
+struct MaplevelGP{
+     QMap <QString ,levelGP> map;
+};
 struct MapdataGP
 {
     QMap <QString ,DataGP> map;

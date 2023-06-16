@@ -26,8 +26,6 @@ void ShowDetail::paintEvent(QPaintEvent *event)
 {
     drawBK();
     drawStr();
-
-
 }
 
 void ShowDetail::drawStr()

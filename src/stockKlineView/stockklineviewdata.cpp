@@ -55,7 +55,6 @@ void StockKlineViewData::setData(const QString &code, KlineEnum enumK)
 }
 void StockKlineViewData::updateData()
 {
-#ifdef Q_OS_LINUX
     if (!szSecID.isEmpty()) {
         QString str = "https://q.stock.sohu.com/hisHq?code=cn_" + szSecID + "&start=" + szDateStart + "&end=" + szDateEnd;
         QByteArray byte = str.toLatin1();
@@ -64,6 +63,7 @@ void StockKlineViewData::updateData()
         QUrl url = QUrl::fromEncoded(byte);
         QNetworkRequest request;
         request.setUrl(url);
+        request.setRawHeader("Referer","https://finance.sina.com.cn");
         reply = manager->get(request);
     } else if (!szSecCodec.isEmpty()) {
         //    https://data.gtimg.cn/flashdata/hushen/latest/daily/sz000002.js?maxage=43201&visitDstTime=1
@@ -85,18 +85,19 @@ void StockKlineViewData::updateData()
         string.prepend(byte);// QByteArray转QString方法2
         QUrl url = QUrl::fromEncoded(byte);
         QNetworkRequest request;
+//        qDebug()<<QUrl(str);
         request.setUrl(QUrl(str));
+
+        request.setRawHeader("Referer","https://finance.sina.com.cn");
         reply = manager->get(request);
     }
-#else
-#endif
 
 
 }
 
 void StockKlineViewData::replyFinished(QNetworkReply *reply)
 {
-#ifdef Q_OS_LINUX
+
     m_vec.clear();
     while (reply->canReadLine()) {
         QByteArray line = reply->readLine(0);
@@ -135,7 +136,5 @@ void StockKlineViewData::replyFinished(QNetworkReply *reply)
     }
     m_klineGrid->readData(m_vec);
     reply->deleteLater();
-#else
-#endif
 
 }

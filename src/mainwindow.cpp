@@ -6,15 +6,21 @@
 #include "stackstock.h"
 #include "updatemygpdialog.h"
 #include "stockView/stockcanvas.h"
+#include "dataresovle.h"
+
 
 #include <QString>
 #include <QSystemTrayIcon>
 #include <QNetworkRequest>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QDebug>
 #include <QTextCodec>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSqlQuery>
+#include <QSqlQueryModel>
+#include <QTableView>
 #include <QTimer>
 #include <QMutex>
 #include <QMutexLocker>
@@ -25,6 +31,8 @@
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QLabel>
+#include <QMap>
+#include <QStandardItemModel>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -32,18 +40,28 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-
+    ui->stackedWidget->setCurrentIndex(0);
     //    m_trayIcon=new QSystemTrayIcon();
     //    m_trayIcon->setToolTip("test");
     //    m_trayIcon->show();
 
     //    ui->normalFrame->hide();
+    QStandardItemModel *pItemModel = qobject_cast<QStandardItemModel*>(ui->comboBox_level->model());
+    pItemModel->item(1)->setBackground(Qt::red);
+    pItemModel->item(2)->setBackground(Qt::red);
+    pItemModel->item(3)->setBackground(Qt::yellow);
+    pItemModel->item(4)->setBackground(Qt::green);
+    pItemModel->item(5)->setBackground(Qt::green);
+
     ui->miniTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->myTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     connect(signalM::instance(), &signalM::sendDataGPsChange, this, &MainWindow::slotDataGPsChange);
     connect(signalM::instance(), &signalM::sendDataHaveGPsChange, this, &MainWindow::slotDataHaveGPsChange);
     connect(signalM::instance(), &signalM::sendDataAllDPChange, this, &MainWindow::slotDataAllDPChange);
+#ifdef Q_OS_WINDOWS
+//    this->setWindowFlag(Qt::Tool,true);
+#endif
     m_shStock = new stackStock();
     m_shStock->setData("sh000001");
     m_shStock->setMinimumHeight(300);
@@ -70,10 +88,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->shlayout->addWidget(m_shStock);
     ui->szlayout->addWidget(m_szStock);
     ui->cylayout->addWidget(m_cyStock);
-
     initLeftMenu();
+//  initLevelMenu();
     setWindowTitle("摸鱼股票球");
-    ui->statusBar->showMessage("github地址:https://github.com/dependon/stockball,欢迎提建议!在持有里面的股票配置可以让小球时时显示持有股票的收益和收益率!本软件纯属娱乐，只供查看");
 
 }
 
@@ -152,7 +169,6 @@ void MainWindow::initLeftMenu()
 
 }
 
-
 void MainWindow::on_pushButton_clicked()
 {
     signalM::instance()->sendposthttpGp(m_currentZQ + ui->searchEdit->text());
@@ -217,6 +233,12 @@ void MainWindow::on_addMyBtn_clicked()
     addMoneyWidget addDialog;
     addDialog.setCodecData(m_mGp);
     addDialog.exec();
+}
+
+
+void MainWindow::on_pushButton_level_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
 }
 
 void MainWindow::slotDataGPsChange(MapdataGP map)
@@ -482,7 +504,6 @@ void MainWindow::on_myTable_customContextMenuRequested(const QPoint &pos)
 
 void MainWindow::on_myTable_cellDoubleClicked(int row, int column)
 {
-    qDebug() << row << column;
     QTableWidgetItem *item = ui->myTable->item(row, 0);
     QString key = item->data(1).toString();
     DataHaveGP haveGp = m_mMyGp.value(key);
@@ -499,7 +520,7 @@ void MainWindow::on_miniTable_cellDoubleClicked(int row, int column)
         if (!code.isEmpty()) {
             QString codecS = code;
             QString codec = code.replace("sz", "1");
-            codec == codec.replace("sh", "0");
+            codec = codec.replace("sh", "0");
             char  *chSecID;
             QByteArray baSecID = codec.toLatin1(); // must
             chSecID = baSecID.data();
@@ -526,7 +547,7 @@ void MainWindow::on_tableWidget_cellDoubleClicked(int row, int column)
         if (!code.isEmpty()) {
             QString codecS = code;
             QString codec = code.replace("sz", "1");
-            codec == codec.replace("sh", "0");
+            codec = codec.replace("sh", "0");
             char  *chSecID;
             QByteArray baSecID = codec.toLatin1(); // must
             chSecID = baSecID.data();
@@ -544,3 +565,325 @@ void MainWindow::on_tableWidget_cellDoubleClicked(int row, int column)
         }
     }
 }
+
+//void MainWindow::initLevelMenu()
+//{
+//    int code = 600377;
+//    m_mLevelGp.clear();
+//    for(int i=0;i<100000;i++)
+//    {
+//        judgeGP *judge = new judgeGP;
+//        double totalvolume = 0;
+//        double totalshare = 0;
+//        double yingli = 0;
+//        double bodong = 0;
+//        double roundrate = 0;
+//        double score = 0;
+//        QString name;
+
+//        QSqlQuery query;
+//        QString codec = '0'+QString::number(code);
+//        QString sql = QString("select sum(volume) as sumvolume from judgeData where codec = '%1'").arg(codec);
+//        query.exec(sql);
+
+//        while(query.next()){totalvolume = query.value(0).toDouble();}
+
+//        QSqlQuery query1;
+//        QString sql1 = QString("select max(totalshare) from judgeData where codec = '%1'").arg(codec);
+//        query1.exec(sql1);
+//        while(query1.next()){totalshare = query1.value(0).toDouble();}
+
+//        QSqlQuery query2;
+//        QString sql2 = QString ("select AVG(yingli) from judgeData where codec = '%1'").arg(codec);
+//        query2.exec(sql2);
+//        while(query2.next()){yingli = 0.4 * query2.value(0).toDouble();}
+
+//        QSqlQuery query3;
+//        QString sql3 = QString ("select AVG(bodong) from judgeData where codec = '%1'").arg(codec);
+//        query3.exec(sql3);
+//        while(query3.next()){bodong = 0.3 * query3.value(0).toDouble();}
+
+//        QSqlQuery query4;
+//        QString sql4 = QString("select name from judgeData where codec = '%1' ").arg(codec);
+//        query4.exec(sql4);
+//        while(query4.next()){name = query4.value(0).toString();}
+
+
+//        judge->codec = codec;
+//        if(yingli<0)
+//        {
+//            judge->yingli = 0;
+//        }else{
+//            judge->yingli = yingli;
+//        }
+//        judge->bodong = bodong;
+//        roundrate = (totalvolume/totalshare) * 0.3;
+//        judge->roundrate = roundrate;
+//        score = judge->yingli + judge->bodong + judge->roundrate;
+//        judge->score = score;
+//        judge->name = name;
+
+//        if(judge->name != NULL){
+//            m_mJudgeGp.insert(codec,*judge);
+//        }
+
+//        QSqlQuery query5;
+//        QString sql5 = QString("insert into levelData(codec,name,yingli,bodong,roundrate,score) "
+//                               "VALUES ('%1','%2',%3,%4,%5,%6)")
+//                .arg(codec)
+//                .arg(name)
+//                .arg(yingli)
+//                .arg(bodong)
+//                .arg(roundrate)
+//                .arg(score);
+//        query5.exec(sql5);
+//        code++;
+//    };
+
+//}
+
+
+//void MainWindow::on_comboBox_level_currentIndexChanged(const QString &arg1)
+//{
+//    int level = 0;
+
+//    //ui->tableView_level->setModel(model);
+//    if(arg1 == "⭐⭐⭐⭐⭐强力买入")
+//    {
+//        level = 100;
+//        model = new QSqlQueryModel(this);
+//        QString sql = QString("select * from levelData order by abs(score - %1) asc limit 30").arg(level);
+//        model->setQuery(sql);
+//        ui->tableView_level = new QTableView;
+//        ui->tableView_level->setModel(model);
+
+
+
+
+
+//        QStringList tables;
+//        tables << "股票代码" << "股票名称" << "市盈得分" << "稳定得分" << "流动得分" << "综合得分";
+//        for(int i=0;i<tables.length();i++){
+//            model->setHeaderData(0, Qt::Horizontal,tables[i]);
+//        }
+
+
+//        ui->tableView_level->setEditTriggers(QAbstractItemView::NoEditTriggers);
+//    }
+//}
+
+
+void MainWindow::on_comboBox_level_currentIndexChanged(int index)
+{
+    int level = 0;
+
+    if(index == 0)
+    {
+        ui->tableView_level->clearSpans();
+    }else if(index == 1)
+    {
+        level = 100;
+        model = new QSqlQueryModel(this);
+        QString sql = QString("select * from levelData order by abs(score - %1) asc limit 30").arg(level);
+        model->setQuery(sql);
+        //ui->tableView_level = new QTableView;
+        ui->tableView_level->setModel(model);
+
+
+        QStringList tables;
+        tables << "股票代码" << "股票名称" << "市盈得分" << "稳定得分" << "流动得分" << "综合得分";
+        for(int i=0;i<tables.length();i++){
+            model->setHeaderData(i, Qt::Horizontal,tables[i]);
+        }
+
+
+        ui->tableView_level->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        for(int i=0;i<tables.length();i++){
+            ui->tableView_level->setColumnWidth(i,225);
+        }
+        ui->tableView_level->show();
+    }else if(index == 2){
+        level = 80;
+        model = new QSqlQueryModel(this);
+        QString sql = QString("select * from levelData order by abs(score - %1) asc limit 30").arg(level);
+        model->setQuery(sql);
+        //ui->tableView_level = new QTableView;
+        ui->tableView_level->setModel(model);
+
+
+        QStringList tables;
+        tables << "股票代码" << "股票名称" << "市盈得分" << "稳定得分" << "流动得分" << "综合得分";
+        for(int i=0;i<tables.length();i++){
+            model->setHeaderData(i, Qt::Horizontal,tables[i]);
+        }
+
+
+        ui->tableView_level->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        for(int i=0;i<tables.length();i++){
+            ui->tableView_level->setColumnWidth(i,225);
+        }
+        ui->tableView_level->show();
+    }else if(index == 3){
+        level = 60;
+        model = new QSqlQueryModel(this);
+        QString sql = QString("select * from levelData order by abs(score - %1) asc limit 30").arg(level);
+        model->setQuery(sql);
+        //ui->tableView_level = new QTableView;
+        ui->tableView_level->setModel(model);
+
+
+        QStringList tables;
+        tables << "股票代码" << "股票名称" << "市盈得分" << "稳定得分" << "流动得分" << "综合得分";
+        for(int i=0;i<tables.length();i++){
+            model->setHeaderData(i, Qt::Horizontal,tables[i]);
+        }
+
+
+        ui->tableView_level->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        for(int i=0;i<tables.length();i++){
+            ui->tableView_level->setColumnWidth(i,225);
+        }
+        ui->tableView_level->show();
+    }else if(index == 4){
+        level = 40;
+        model = new QSqlQueryModel(this);
+        QString sql = QString("select * from levelData order by abs(score - %1) asc limit 30").arg(level);
+        model->setQuery(sql);
+        //ui->tableView_level = new QTableView;
+        ui->tableView_level->setModel(model);
+
+
+        QStringList tables;
+        tables << "股票代码" << "股票名称" << "市盈得分" << "稳定得分" << "流动得分" << "综合得分";
+        for(int i=0;i<tables.length();i++){
+            model->setHeaderData(i, Qt::Horizontal,tables[i]);
+        }
+
+
+        ui->tableView_level->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        for(int i=0;i<tables.length();i++){
+            ui->tableView_level->setColumnWidth(i,225);
+        }
+        ui->tableView_level->show();
+    }else if(index == 5){
+        level = 0;
+        model = new QSqlQueryModel(this);
+        QString sql = QString("select * from levelData order by abs(score - %1) asc limit 30").arg(level);
+        model->setQuery(sql);
+        //ui->tableView_level = new QTableView;
+        ui->tableView_level->setModel(model);
+
+
+        QStringList tables;
+        tables << "股票代码" << "股票名称" << "市盈得分" << "稳定得分" << "流动得分" << "综合得分";
+        for(int i=0;i<tables.length();i++){
+            model->setHeaderData(i, Qt::Horizontal,tables[i]);
+        }
+
+
+        ui->tableView_level->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        for(int i=0;i<tables.length();i++){
+            ui->tableView_level->setColumnWidth(i,225);
+        }
+        ui->tableView_level->show();
+    }else if(index == 6){
+        QSqlQuery query;
+        QString sql = QString("select code from haveData");
+        query.exec(sql);
+        m_mJudgeGp.clear();
+        int index = 0;
+        while(query.next()){
+            QString code = QString(query.value(0).toString());
+            code = code.remove(0,2);
+            QString codec = code.insert(0,'0');
+            //qDebug() << codec;
+
+            QSqlQuery query1;
+            QString sql1 = QString("select * from levelData where codec = '%1'").arg(codec);
+            query1.exec(sql1);
+            judgeGP *m_mjudge = new judgeGP();
+            while(query1.next()){
+                 m_mjudge->codec = query1.value(0).toString();
+                 m_mjudge->name = query1.value(1).toString();
+                 m_mjudge->yingli = query1.value(2).toDouble();
+                 m_mjudge->bodong = query1.value(3).toDouble();
+                 m_mjudge->roundrate = query1.value(4).toDouble();
+                 m_mjudge->score = query1.value(5).toDouble();
+                 m_mJudgeMap.insert(index,*m_mjudge);
+                 index++;
+            }
+        }
+//        QMap<int, judgeGP>::iterator it;
+//        for(it = m_mJudgeMap.begin(); it != m_mJudgeMap.end(); it++){
+//            qDebug() << it->codec << it->name << it->yingli << it->bodong << it->roundrate << it->score;
+//        }
+
+        QStandardItemModel* model = new QStandardItemModel();
+        int index1 = 0;
+        QStandardItem* item = 0;
+        for(auto gp : m_mJudgeMap){
+            item = new QStandardItem(QString("%1").arg(gp.codec));
+            model->setItem(index1,0,item);
+            item = new QStandardItem(QString("%1").arg(gp.name));
+            model->setItem(index1,1,item);
+            item = new QStandardItem(QString("%1").arg(gp.yingli));
+            model->setItem(index1,2,item);
+            item = new QStandardItem(QString("%1").arg(gp.bodong));
+            model->setItem(index1,3,item);
+            item = new QStandardItem(QString("%1").arg(gp.roundrate));
+            model->setItem(index1,4,item);
+            item = new QStandardItem(QString("%1").arg(gp.score));
+            model->setItem(index1,5,item);
+            if(gp.score>=60){
+                QModelIndex jc = model->index(index1,5);
+                model->setData(jc,QBrush(Qt::red), Qt::BackgroundColorRole);
+            }else if(gp.score>=40 && gp.score<60){
+                QModelIndex jc = model->index(index1,5);
+                model->setData(jc,QBrush(Qt::yellow), Qt::BackgroundColorRole);
+            }else if(gp.score>=0 && gp.score<40){
+                QModelIndex jc = model->index(index1,5);
+                model->setData(jc,QBrush(Qt::green), Qt::BackgroundColorRole);
+            }
+            index1++;
+        }
+        ui->tableView_level->setModel(model);
+        QStringList tables;
+        tables << "股票代码" << "股票名称" << "市盈得分" << "稳定得分" << "流动得分" << "综合得分";
+        for(int i=0;i<tables.length();i++){
+            model->setHeaderData(i, Qt::Horizontal,tables[i]);
+        }
+        ui->tableView_level->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        for(int i=0;i<tables.length();i++){
+            ui->tableView_level->setColumnWidth(i,225);
+        }
+        ui->tableView_level->show();
+    }
+}
+
+
+
+void MainWindow::on_tableView_level_doubleClicked(const QModelIndex &index)
+{
+    if (index.column() >= 0) {
+       QString code = index.data(0).toString();
+        if (!code.isEmpty()) {
+            QString codecS = "sh" + code.mid(1);
+            QString codec = code;
+            //codec = codec.replace("sz", "1");
+            //codec = codec.replace("sh", "0");
+            char  *chSecID;
+            QByteArray baSecID = codec.toLatin1();
+            chSecID = baSecID.data();
+            if (!m_stockWidget) {
+                m_stockWidget = new stackStock();
+                m_stockWidget->setMinimumSize(400, 300);
+                m_stockWidget->setData(codecS);
+            } else {
+                m_stockWidget->setData(codecS);
+            }
+            m_stockWidget->setWindowTitle(codec.mid(1));
+            m_stockWidget->show();
+        }
+    }
+}
+

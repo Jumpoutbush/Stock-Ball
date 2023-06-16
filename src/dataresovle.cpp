@@ -1,4 +1,4 @@
-#include "dataresovle.h"
+ #include "dataresovle.h"
 #include "signalm.h"
 
 #include <QSqlDatabase>
@@ -15,10 +15,11 @@
 #include <QString>
 #include <QWidget>
 #include <QDir>
-const QString SQL_PATH =   QDir::homePath() +
-                           "/.config/findfish-stockball/stockball.db";
-const QString SQL_DIR =   QDir::homePath() +
-                          "/.config/findfish-stockball/";
+#include <QRandomGenerator>
+
+const QString SQL_PATH =   "./findfish-stockball/stockball.db";
+const QString SQL_DIR =   "./findfish-stockball/";
+
 DataResovle *DataResovle::m_dataResovle = nullptr;
 DataResovle *DataResovle::instance()
 {
@@ -122,9 +123,7 @@ void DataResovle::initDB()
     QSqlQuery query;
     query.exec("select * from myData");
 
-    while (query.next()) { //一行一行遍历
-        //取出当前行的内容
-        //以列为单位的     //第0列
+    while (query.next()) {
         QString str = query.value(0).toString();
         m_mGp.insert(str, DataGP());
     }
@@ -135,10 +134,8 @@ void DataResovle::initDB()
 
     QSqlQuery query2;
     query2.exec("select * from haveData");
-    while (query2.next()) { //一行一行遍历
+    while (query2.next()) {
         DataHaveGP gp;
-        //取出当前行的内容
-        //以列为单位的     //第0列
         QString str = query2.value(0).toString();
         QString str2 = query2.value(1).toString();
         int num = query2.value(2).toInt();
@@ -147,6 +144,29 @@ void DataResovle::initDB()
         gp.haveNum = num;
         m_mMyGp.insert(str, gp);
     }
+
+//    QRandomGenerator *random = QRandomGenerator::global();
+//    int id = 0;
+//    for(int i=0;i<8692;i++)
+//    {
+//        ++id;
+//        int codec = 0;
+//        codec = random->bounded(600000,600300);
+//        QSqlQuery query1;
+//        QString sql = QString("update newsData set codec = %1 where id = %2").arg(codec).arg(id);
+//        query1.exec(sql);
+
+//    }
+//    QSqlQuery query3;
+//    query3.exec("select * from newsData where id <=60");
+//    while(query3.next())
+//    {
+//        qDebug() << query3.value(0).toInt()
+//                 << query3.value(1).toString()
+//                 << query3.value(2).toString()
+//                 << query3.value(3).toString() ;
+//    }
+
 }
 void DataResovle::removeGP(const QString &str)
 {
@@ -304,6 +324,7 @@ void DataResovle::sendHttpData(const QString &str)
     QString bumStr = "http://hq.sinajs.cn/list=" + str;
     QNetworkRequest request;
     request.setUrl(QUrl(bumStr));
+    request.setRawHeader("Referer","https://finance.sina.com.cn");
     reply = manager->get(request);
 }
 void DataResovle::sendData()
@@ -312,6 +333,7 @@ void DataResovle::sendData()
         QString bumStr = "http://hq.sinajs.cn/list=" + key;
         QNetworkRequest request;
         request.setUrl(QUrl(bumStr));
+        request.setRawHeader("Referer","https://fin ance.sina.com.cn");
         reply = manager->get(request);
     }
 }
@@ -321,6 +343,7 @@ void DataResovle::sendData2()
         QString bumStr = "http://hq.sinajs.cn/list=" + key;
         QNetworkRequest request;
         request.setUrl(QUrl(bumStr));
+        request.setRawHeader("Referer","https://finance.sina.com.cn");
         reply2 = manager2->get(request);
     }
 }

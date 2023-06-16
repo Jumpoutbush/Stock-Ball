@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network sql
+QT       += core gui network sql webenginewidgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -42,7 +42,8 @@ SOURCES += \
     stockKlineView/kvolumegrid.cpp \
     stockKlineView/showdetail.cpp \
     stockKlineView/stockklineviewdata.cpp \
-    stackstock.cpp
+    stackstock.cpp \
+    news.cpp
 
 HEADERS += \
         addmoneywidget.h \
@@ -61,13 +62,15 @@ HEADERS += \
     stockKlineView/kvolumegrid.h \
     stockKlineView/showdetail.h \
     stockKlineView/stockklineviewdata.h \
-    stackstock.h
+    stackstock.h \
+    news.h
 
 FORMS += \
         addmoneywidget.ui \
         mainwindow.ui \
         updatemygpdialog.ui \
-    stackstock.ui
+    stackstock.ui \
+    news.ui
 
 # Default rules for deployment.
 

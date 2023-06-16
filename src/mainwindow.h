@@ -5,6 +5,8 @@
 
 #include <QMap>
 #include <QSqlDatabase>
+#include <QSqlQueryModel>
+#include <QCloseEvent>
 #include "data.h"
 class QNetworkReply;
 class QSystemTrayIcon;
@@ -15,6 +17,8 @@ class QTableWidgetItem;
 class StockCanvas;
 class QLabel;
 class stackStock;
+
+
 namespace Ui {
 class MainWindow;
 }
@@ -28,6 +32,7 @@ public:
     ~MainWindow();
 
     void initLeftMenu();
+//    void initLevelMenu();
     void refreshNormalWidget();
     void refreshMyhaveWidget();
 
@@ -63,6 +68,14 @@ private slots:
 
     void on_tableWidget_cellDoubleClicked(int row, int column);
 
+    void on_pushButton_level_clicked();
+
+    //void on_comboBox_level_currentIndexChanged(const QString &arg1);
+
+    void on_comboBox_level_currentIndexChanged(int index);
+
+    void on_tableView_level_doubleClicked(const QModelIndex &index);
+
 private:
     Ui::MainWindow *ui;
 //    QSystemTrayIcon *m_trayIcon{nullptr};
@@ -72,7 +85,11 @@ private:
     QNetworkReply *reply2 {nullptr};
     QMap <QString,DataGP> m_mGp;
     QMap <QString,DataHaveGP> m_mMyGp;
+    QMap <QString,levelGP> m_mLevelGp;
+    QMap <QString,judgeGP> m_mJudgeGp;
+    QMap <int, judgeGP> m_mJudgeMap;
     QTimer * m_timer{nullptr};
+    QSqlQueryModel *model;
 
     DataAllDP m_myAllDP;
     QString m_currentZQ="sh";

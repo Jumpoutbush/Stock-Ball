@@ -283,7 +283,7 @@ void KLineGrid::drawKline()
 
 
         } else {
-            //像同花顺一样阳线画成空心的
+            //线画成空心
 
             pen.setWidth(1);
             painter.setPen(pen);
